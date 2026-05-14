@@ -12,3 +12,104 @@
 在最后，我直接不把训练集划分，直接用100%的全量数据来构建我的模型，最后用于测试集上，成功在kaggle上将分数跑进0.9以上！
 
 全部的代码都是gemini帮我写的，说实话我一个都写不出来，但是我能看的懂是在做什么，这是我的第一次参加竞赛的项目，这让我很有成就感！
+
+以下是正式的README
+# 📉 Customer Churn Prediction — Kaggle Playground S6E3
+
+预测电信客户是否会流失（Churn），基于用户合约、消费行为和服务订阅等特征构建分类模型。
+
+**比赛成绩：ROC-AUC 0.91542 | 排名 1097 / ~3,700**
+
+---
+
+## 项目简介
+
+本项目参加 [Kaggle Playground Series Season 6 Episode 3](https://www.kaggle.com/competitions/playground-series-s6e3/overview) 比赛。数据集包含约 594,000 条电信客户记录，共 21 个特征，目标是预测客户流失概率，评估指标为 ROC-AUC。
+
+核心思路：在原始特征的基础上，手动构造聚合特征和交叉特征，捕捉特征组合带来的额外流失信号，再用 XGBoost 进行分类。
+
+---
+
+## 技术栈
+
+| 类别 | 工具 |
+|------|------|
+| 语言 | Python 3 |
+| 数据处理 | pandas, numpy |
+| 建模 | XGBoost |
+| 可视化 | matplotlib, seaborn |
+
+---
+
+## 特征工程
+
+原始特征经过以下处理：
+
+**聚合特征**
+- `Service_Count`：用户订阅的增值服务数量（OnlineSecurity、TechSupport 等 6 项）
+- `TotalCharges_Log`：总消费额的对数变换，缓解右偏分布
+- `Monthly_Ratio`：月均消费 / 总消费，反映消费稳定性
+- `Tenure_Group`：按在网时长分组（New / Medium / Loyal）
+- `Is_High_Risk_Newbie`：在网 < 6 个月且月费 > 70 的高风险新用户标志
+
+**交叉特征**（编码后构造）
+- `Easy_To_Leave`：电子支付 + 非长期合约（最容易流失的组合）
+- `Fiber_Without_Support`：光纤用户但无技术支持
+- `Payment_Pain_Index`：电子支付 × 高消费额
+- `High_Monthly_Check_Risk`：电子支付 × 月费比例高于均值
+
+---
+
+## 模型参数
+
+```python
+XGB_PARAMS = dict(
+    n_estimators     = 350,
+    max_depth        = 4,
+    learning_rate    = 0.02,
+    subsample        = 0.8,
+    colsample_bytree = 0.8,
+    reg_alpha        = 1.5,
+    reg_lambda       = 1.5,
+    random_state     = 42,
+)
+```
+
+---
+
+## 如何运行
+
+**1. 安装依赖**
+
+```bash
+pip install pandas numpy matplotlib seaborn xgboost
+```
+
+**2. 准备数据**
+
+从 [比赛页面](https://www.kaggle.com/competitions/playground-series-s6e3/data) 下载 `train.csv` 和 `test.csv`，放置于项目根目录。
+
+**3. 运行**
+
+```bash
+python kaggle-Predict_Customer_Churn.py
+```
+
+运行后会在当前目录生成 `submission.csv`，可直接提交至 Kaggle。
+
+---
+
+## 文件结构
+
+```
+├── kaggle-Predict_Customer_Churn.py   # 主脚本
+├── train.csv                          # 训练集（需自行下载）
+├── test.csv                           # 测试集（需自行下载）
+└── submission.csv                     # 预测结果（运行后生成）
+```
+
+---
+
+## 作者
+
+xLuck · [GitHub](https://github.com/)
